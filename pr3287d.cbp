@@ -31,6 +31,65 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="src/3270ds.h" />
+		<Unit filename="src/arpa_telnet.h" />
+		<Unit filename="src/charset.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/charsetc.h" />
+		<Unit filename="src/ctlr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/ctlrc.h" />
+		<Unit filename="src/globals.h" />
+		<Unit filename="src/localdefs.h" />
+		<Unit filename="src/popupsc.h" />
+		<Unit filename="src/pr3287.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/proxy.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/proxy.h" />
+		<Unit filename="src/proxyc.h" />
+		<Unit filename="src/resolver.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/resolverc.h" />
+		<Unit filename="src/see.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/seec.h" />
+		<Unit filename="src/sf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/sfc.h" />
+		<Unit filename="src/tables.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/tablesc.h" />
+		<Unit filename="src/telnet.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/telnetc.h" />
+		<Unit filename="src/tn3270e.h" />
+		<Unit filename="src/trace_ds.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/trace_dsc.h" />
+		<Unit filename="src/unicode.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/unicode_dbcs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/unicode_dbcsc.h" />
+		<Unit filename="src/unicodec.h" />
+		<Unit filename="src/utf8.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/utf8c.h" />
+		<Unit filename="src/w3miscc.h" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>

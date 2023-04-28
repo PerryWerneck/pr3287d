@@ -1,0 +1,16 @@
+ABOUT-NLS
+*.m4
+*.cache/
+*.log
+*.status
+configure
+intl
+libtool
+m4
+po
+*.bak
+scripts
+config.h
+stamp-h1
+*~
+
