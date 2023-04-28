@@ -1,4 +1,4 @@
-/* src/config.h.in.  Generated from configure.ac by autoheader.  */
+/* src/include/config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* The gettext package name. */
 #undef GETTEXT_PACKAGE
@@ -9,7 +9,7 @@
 /* supports GCC visibility attributes */
 #undef HAVE_GNUC_VISIBILITY
 
-/* Define if you have the iconv() function and it works. */
+/* Define if you have the iconv() function. */
 #undef HAVE_ICONV
 
 /* Define to 1 if you have the <inttypes.h> header file. */

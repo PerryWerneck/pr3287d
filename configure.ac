@@ -15,7 +15,7 @@ dnl Compute the canonical host-system type
 AC_CANONICAL_HOST
 
 dnl Put macro definitions here (though they aren't used).
-AC_CONFIG_HEADER([src/config.h])
+AC_CONFIG_HEADER([src/include/config.h])
 
 dnl Initialise automake stuff.
 AM_INIT_AUTOMAKE
@@ -86,7 +86,7 @@ case "$host" in
 		# https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt?view=msvc-170
 		CFLAGS="$CFLAGS -pthread"
 		AC_SUBST(EXEEXT,.exe)
-		AC_CONFIG_FILES(src/resources.rc)
+		AC_CONFIG_FILES(src/windows/resources.rc)
 		AC_SUBST(OSNAME,windows)
 		;;
 
