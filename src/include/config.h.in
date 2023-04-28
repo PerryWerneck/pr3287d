@@ -99,6 +99,21 @@
 /* The product title */
 #undef PRODUCT_TITLE
 
+/* The RPQ build date */
+#undef RPQ_BUILD_DATE
+
+/* The RPQ revision */
+#undef RPQ_REVISION
+
+/* The RPQ timestamp */
+#undef RPQ_TIMESTAMP_VALUE
+
+/* The build date */
+#undef SCCS_DATE
+
+/* The build user */
+#undef SCCS_USER
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 

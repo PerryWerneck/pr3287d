@@ -71,8 +71,25 @@ AC_SUBST(PACKAGE_PATCH_LEVEL,$app_vrs_patch)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"libudjat-$app_vrs_major.$app_vrs_minor",[The gettext package name.])
 AC_SUBST(GETTEXT_PACKAGE,"pr3287d-$app_vrs_major.$app_vrs_minor")
 
-core_build_id=$(date +%y%m%d%H)
-AC_SUBST(CORE_BUILD_ID,$core_build_id)
+date="date"
+test -z "$SOURCE_DATE_EPOCH" || date="$date -u -d@$SOURCE_DATE_EPOCH"
+rpq_build_date=`LANG=C $date`
+rpq_timestamp=`$date +%Y%m%d%H%M%S`
+rpq_revision=`$date +"%Y%m%d"`
+sccs_date=`$date +%Y/%m/%d`
+sccs_user=$USER
+
+AC_DEFINE_UNQUOTED(RPQ_BUILD_DATE,"$rpq_build_date",[The RPQ build date])
+AC_DEFINE_UNQUOTED(RPQ_TIMESTAMP_VALUE,"$rpq_timestamp",[The RPQ timestamp])
+AC_DEFINE_UNQUOTED(SCCS_USER,"$USER",[The build user])
+AC_DEFINE_UNQUOTED(SCCS_DATE,"$sccs_date",[The build date])
+AC_DEFINE_UNQUOTED(RPQ_REVISION,"$rpq_revision",[The RPQ revision])
+
+AC_SUBST(RPQ_BUILD_DATE,"$rpq_build_date")
+AC_SUBST(RPQ_TIMESTAMP_VALUE,"$rpq_timestamp")
+AC_SUBST(SCCS_USER,"$USER")
+AC_SUBST(SCCS_DATE,"$sccs_date")
+AC_SUBST(RPQ_REVISION,"$rpq_revision")
 
 dnl ---------------------------------------------------------------------------
 dnl Check for OS specifics
@@ -169,7 +186,8 @@ dnl ---------------------------------------------------------------------------
 
 AC_SUBST(SRCDIR,$ac_pwd)
 
-dnl AC_CONFIG_FILES(Makefile)
+AC_CONFIG_FILES(src/common/version.c)
+AC_CONFIG_FILES(Makefile)
 
 dnl ---------------------------------------------------------------------------
 dnl Output the generated config.status script.

@@ -13,4 +13,9 @@ scripts
 config.h
 stamp-h1
 *~
+*.layout
+.bin
+.obj
+Makefile
+version.c
 
