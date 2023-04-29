@@ -101,7 +101,9 @@ OPTIONAL_MODULES=""
 case "$host" in
 	*-mingw32|*-pc-msys)
 		# https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt?view=msvc-170
-		CFLAGS="$CFLAGS -pthread"
+		CFLAGS="$CFLAGS -pthread -D_WIN32_WINNT=0x0600"
+		LIBS="$LIBS -lws2_32 -lwtsapi32 -lcomdlg32 -lwinhttp -lwinspool"
+		LDFLAGS="$LDFLAGS -pthread"
 		AC_SUBST(EXEEXT,.exe)
 		AC_CONFIG_FILES(src/windows/resources.rc)
 		AC_SUBST(OSNAME,windows)
