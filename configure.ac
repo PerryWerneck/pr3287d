@@ -95,7 +95,7 @@ dnl ---------------------------------------------------------------------------
 dnl Check for OS specifics
 dnl ---------------------------------------------------------------------------
 
-CFLAGS="$CFLAGS -I$ac_pwd/src/include"
+CFLAGS="$CFLAGS -DUSE_ICONV=1 -I$ac_pwd/src/include"
 OPTIONAL_MODULES=""
 
 case "$host" in
@@ -174,6 +174,7 @@ dnl ---------------------------------------------------------------------------
 
 PKG_CHECK_MODULES( [LIBSSL], [libssl libcrypto], AC_DEFINE(HAVE_LIBSSL,[],[Do we have libssl?]), AC_MSG_ERROR([libssl not present.]) )
 
+CFLAGS="$CFLAGS -DHAVE_LIBSSL=1"
 AC_SUBST(LIBSSL_LIBS)
 AC_SUBST(LIBSSL_CFLAGS)
 

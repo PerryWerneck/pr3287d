@@ -52,6 +52,7 @@
 #endif /*]*/
 
 #if defined(USE_ICONV) /*[*/
+#include <iconv.h>
 iconv_t i_u2mb = (iconv_t)-1;
 iconv_t i_mb2u = (iconv_t)-1;
 #if !defined(_LIBICONV_VERSION) || _LIBICONV_VERSION < 0x0108 /*[*/

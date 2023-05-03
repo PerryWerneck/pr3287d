@@ -64,7 +64,8 @@ LDFLAGS= \
 
 LIBS= \
 	@LIBS@ \
-	@LIBSSL_LIBS@
+	@LIBSSL_LIBS@ \
+	@LIBICONV@
 
 #---[ Debug Rules ]----------------------------------------------------------------------
 

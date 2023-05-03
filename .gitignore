@@ -1,6 +1,6 @@
 ABOUT-NLS
 *.m4
-*.cache/
+*.cache
 *.log
 *.status
 configure
@@ -18,4 +18,6 @@ stamp-h1
 .obj
 Makefile
 version.c
+resources.rc
+*test.sh
 
