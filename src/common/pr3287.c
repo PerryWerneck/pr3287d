@@ -127,8 +127,6 @@
 #endif /*]*/
 
 /* Externals. */
-extern char *build;
-extern FILE *tracef;
 
 /* Globals. */
 char *programname = NULL;	/* program name */

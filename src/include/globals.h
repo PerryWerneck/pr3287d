@@ -71,3 +71,8 @@ typedef unsigned short ebc_t;
 #define CS_LINEDRAW	0x02	/*  DEC line-drawing character set (ANSI) */
 #define CS_DBCS		0x03	/*  DBCS character set (X'F8') */
 #define CS_GE		0x04	/* cs flag for Graphic Escape */
+
+extern const char *build;
+extern const char *app_defaults_version;
+extern const char sccsid[];
+extern FILE *tracef;
