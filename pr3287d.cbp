@@ -94,6 +94,7 @@
 		<Unit filename="src/include/unicode_dbcsc.h" />
 		<Unit filename="src/include/unicodec.h" />
 		<Unit filename="src/include/utf8c.h" />
+		<Unit filename="src/include/versionsc.h" />
 		<Unit filename="src/include/w3miscc.h" />
 		<Unit filename="src/include/windirsc.h" />
 		<Unit filename="src/include/wsc.h" />

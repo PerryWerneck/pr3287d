@@ -74,6 +74,8 @@
  *          -V
  *		verbose output about negotiation
  */
+
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -147,6 +149,10 @@ int ssl_host = 0;
 unsigned long eoj_timeout = 0L; /* end of job timeout */
 char *trnpre = NULL;
 char *trnpost = NULL;
+
+const char *build = PACKAGE_NAME " " PACKAGE_VERSION " " RPQ_BUILD_DATE " " SCCS_USER;
+const char *app_defaults_version = PACKAGE_VERSION;
+const char sccsid[] = "@(#)" PACKAGE_NAME " " PACKAGE_VERSION " " SCCS_DATE " " SCCS_USER;
 
 /* User options. */
 #if !defined(_WIN32) /*[*/
