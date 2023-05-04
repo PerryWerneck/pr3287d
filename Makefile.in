@@ -149,8 +149,7 @@ stripped: \
 #---[ Install Targets ]------------------------------------------------------------------
 
 install: \
-	install-@OSNAME@ \
-	install-conf
+	install-@OSNAME@
 
 install-linux: \
 	$(BINRLS)/$(PACKAGE_NAME)@EXEEXT@
@@ -159,18 +158,18 @@ install-linux: \
 	@$(MKDIR) $(DESTDIR)/$(sbindir)
 	@$(INSTALL_PROGRAM) $(BINRLS)/$(PACKAGE_NAME)@EXEEXT@ $(DESTDIR)/$(sbindir)/$(PACKAGE_NAME)
 
-	@$(LN_S) $(sbindir)/service $(DESTDIR)/$(sbindir)/rc$(PACKAGE_NAME)
+	#@$(LN_S) $(sbindir)/service $(DESTDIR)/$(sbindir)/rc$(PACKAGE_NAME)
 
 	# Install permissions
-	@$(MKDIR) $(DESTDIR)/$(sysconfdir)/permissions.d
-	@install -m 644 $(srcdir)/sysconf/permissions $(DESTDIR)/$(sysconfdir)/permissions.d/$(PACKAGE_NAME)
+	#@$(MKDIR) $(DESTDIR)/$(sysconfdir)/permissions.d
+	#@install -m 644 $(srcdir)/sysconf/permissions $(DESTDIR)/$(sysconfdir)/permissions.d/$(PACKAGE_NAME)
 
 	# Install systemd
-	@$(MKDIR) $(DESTDIR)@SYSTEMD_UNITDIR@
-	@$(INSTALL_DATA) $(srcdir)/sysconf/systemd.service $(DESTDIR)@SYSTEMD_UNITDIR@/$(PACKAGE_NAME).service
+	#@$(MKDIR) $(DESTDIR)@SYSTEMD_UNITDIR@
+	#@$(INSTALL_DATA) $(srcdir)/sysconf/systemd.service $(DESTDIR)@SYSTEMD_UNITDIR@/$(PACKAGE_NAME).service
 
-	@$(MKDIR) $(DESTDIR)/usr/lib/systemd/system-preset
-	@$(INSTALL_DATA) $(srcdir)/sysconf/systemd.preset $(DESTDIR)@SYSTEMD_PRESETDIR@/50-$(PACKAGE_NAME).preset
+	#@$(MKDIR) $(DESTDIR)/usr/lib/systemd/system-preset
+	#@$(INSTALL_DATA) $(srcdir)/sysconf/systemd.preset $(DESTDIR)@SYSTEMD_PRESETDIR@/50-$(PACKAGE_NAME).preset
 
 install-windows: \
 	stripped
