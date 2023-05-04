@@ -95,8 +95,16 @@
 		<Unit filename="src/include/unicodec.h" />
 		<Unit filename="src/include/utf8c.h" />
 		<Unit filename="src/include/w3miscc.h" />
+		<Unit filename="src/include/windirsc.h" />
+		<Unit filename="src/include/wsc.h" />
 		<Unit filename="src/windows/resources.rc" />
 		<Unit filename="src/windows/w3misc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/windows/windirs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/windows/ws.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Extensions />
