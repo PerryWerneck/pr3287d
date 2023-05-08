@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009, Paul Mattes.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -13,7 +13,7 @@
  *     * Neither the name of Paul Mattes nor his contributors may be used
  *       to endorse or promote products derived from this software without
  *       specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY PAUL MATTES "AS IS" AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -45,6 +45,11 @@ static enum {
     PRINTER_JOB		/* print job pending */
 } printer_state = PRINTER_IDLE;
 
+static enum {
+	PRINTER_MODE_DEFAULT,	/* Use default windows spool */
+	PRINTER_MODE_FILE,		/* Print to file */
+} printer_mode = PRINTER_MODE_DEFAULT;
+
 static HANDLE printer_handle;
 
 static char printer_buf[PRINTER_BUFSIZE];
@@ -66,29 +71,35 @@ static int pbcnt = 0;
 int
 ws_start(char *printer_name)
 {
-    PRINTER_DEFAULTS defaults;
+	switch(printer_mode) {
+	case PRINTER_MODE_DEFAULT:
+		{
+			PRINTER_DEFAULTS defaults;
 
-    /* If they didn't specify a printer, grab the default. */
-    if (printer_name == NULL) {
-	printer_name = ws_default_printer();
-	if (printer_name == NULL) {
-	    errmsg("ws_start: No default printer");
-	    return -1;
+			/* If they didn't specify a printer, grab the default. */
+			if (printer_name == NULL) {
+				printer_name = ws_default_printer();
+				if (printer_name == NULL) {
+					errmsg("ws_start: No default printer");
+					return -1;
+				}
+			}
+
+			/* Talk to the printer. */
+			(void) memset(&defaults, '\0', sizeof(defaults));
+			defaults.pDatatype = "RAW";
+			defaults.pDevMode = NULL;
+			defaults.DesiredAccess = PRINTER_ACCESS_USE;
+
+			if (OpenPrinter(printer_name, &printer_handle, &defaults) == 0) {
+				errmsg("ws_start: OpenPrinter failed, "
+					"Win32 error %d", GetLastError());
+				return -1;
+			}
+		}
+		break;
+
 	}
-    }
-
-    /* Talk to the printer. */
-    (void) memset(&defaults, '\0', sizeof(defaults));
-    defaults.pDatatype = "RAW";
-    defaults.pDevMode = NULL;
-    defaults.DesiredAccess = PRINTER_ACCESS_USE;
-
-    if (OpenPrinter(printer_name, &printer_handle, &defaults) == 0) {
-
-	errmsg("ws_start: OpenPrinter failed, "
-		"Win32 error %d", GetLastError());
-	return -1;
-    }
 
     printer_state = PRINTER_OPEN;
     return 0;
@@ -100,9 +111,6 @@ ws_start(char *printer_name)
 int
 ws_flush(void)
 {
-    DWORD wrote;
-    int rv = 0;
-
     switch (printer_state) {
 	case PRINTER_IDLE:
 	    errmsg("ws_endjob: printer not open");
@@ -113,19 +121,55 @@ ws_flush(void)
 	    break;
     }
 
-    if (pbcnt != 0) {
+	int rv = 0;
 
-	if (WritePrinter(printer_handle, printer_buf, pbcnt, &wrote) == 0) {
-	    errmsg("ws_flush: WritePrinter failed, "
-		    "Win32 error %d", GetLastError());
-	    rv = -1;
+	switch(printer_mode) {
+	case PRINTER_MODE_DEFAULT:
+		{
+			DWORD wrote;
+
+			if (pbcnt != 0) {
+
+				if (WritePrinter(printer_handle, printer_buf, pbcnt, &wrote) == 0) {
+					errmsg("ws_flush: WritePrinter failed, "
+						"Win32 error %d", GetLastError());
+					rv = -1;
+				}
+
+				pbcnt = 0;
+
+			}
+		}
+		break;
 	}
 
-	pbcnt = 0;
-    }
 
     return rv;
 }
+
+int
+ws_open()
+{
+	switch(printer_mode) {
+	case PRINTER_MODE_DEFAULT:
+		{
+			DOC_INFO_1 doc_info;
+			/* Start a new document. */
+			doc_info.pDocName = "wpr3287 print job";
+			doc_info.pOutputFile = NULL;
+			doc_info.pDatatype = "RAW";
+			if (StartDocPrinter(printer_handle, 1, (LPBYTE)&doc_info) == 0) {
+				errmsg("ws_putc: StartDocPrinter failed, Win32 error %d", GetLastError());
+				return -1;
+			}
+
+		}
+
+	}
+
+	return 0;
+}
+
 
 /*
  * Write a byte to the current print job.
@@ -133,8 +177,6 @@ ws_flush(void)
 int
 ws_putc(char c)
 {
-    DOC_INFO_1 doc_info;
-
     switch (printer_state) {
 
 	case PRINTER_IDLE:
@@ -142,15 +184,9 @@ ws_putc(char c)
 	    return -1;
 
 	case PRINTER_OPEN:
-	    /* Start a new document. */
-	    doc_info.pDocName = "wpr3287 print job";
-	    doc_info.pOutputFile = NULL;
-	    doc_info.pDatatype = "RAW";
-	    if (StartDocPrinter(printer_handle, 1, (LPBYTE)&doc_info) == 0) {
-		errmsg("ws_putc: StartDocPrinter failed, "
-			"Win32 error %d", GetLastError());
-		return -1;
-	    }
+		if(ws_open()) {
+			return -1;
+		}
 	    printer_state = PRINTER_JOB;
 	    pbcnt = 0;
 	    break;
@@ -161,7 +197,7 @@ ws_putc(char c)
 
     /* Flush if needed. */
     if ((pbcnt >= PRINTER_BUFSIZE) && (ws_flush() < 0))
-	return -1;
+		return -1;
 
     /* Buffer this character. */
     printer_buf[pbcnt++] = c;
@@ -189,8 +225,6 @@ ws_write(char *s, int len)
 int
 ws_endjob(void)
 {
-    int rv = 0;
-
     switch (printer_state) {
 	case PRINTER_IDLE:
 	    errmsg("ws_endjob: printer not open");
@@ -201,16 +235,26 @@ ws_endjob(void)
 	    break;
     }
 
+    int rv = 0;
+
     /* Flush whatever's pending. */
     if (ws_flush() < 0)
 	rv = 1;
 
     /* Close out the job. */
-    if (EndDocPrinter(printer_handle) == 0) {
-	errmsg("ws_endjob: EndDocPrinter failed, "
-		"Win32 error %d", GetLastError());
-	rv = -1;
-    }
+
+	switch(printer_mode) {
+	case PRINTER_MODE_DEFAULT:
+		{
+			if (EndDocPrinter(printer_handle) == 0) {
+			errmsg("ws_endjob: EndDocPrinter failed, "
+				"Win32 error %d", GetLastError());
+			rv = -1;
+			}
+		}
+
+	}
+
 
     /* Done. */
     printer_state = PRINTER_OPEN;
@@ -243,7 +287,7 @@ ws_default_printer(void)
      * names, so this method is safe.
      */
     comma = strchr(pstring, ',');
-    if (comma != NULL)
+		if (comma != NULL)
 	*comma = '\0';
 
     /*
@@ -251,7 +295,7 @@ ws_default_printer(void)
      * will fail, or if it will return nothing.  Perpare for the latter.
      */
     if (!*pstring)
-	return NULL;
+		return NULL;
 
     return pstring;
 }

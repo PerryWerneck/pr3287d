@@ -1456,8 +1456,8 @@ stash(unsigned char c)
 {
 #if defined(_WIN32) /*[*/
 	if (!ws_initted) {
-	    	if (ws_start(printer) < 0) {
-		    return -1;
+		if (ws_start(printer) < 0) {
+			return -1;
 		}
 		ws_initted = 1;
 	}
@@ -1470,6 +1470,7 @@ stash(unsigned char c)
 	if (ws_putc((char)c)) {
 	    	return -1;
 	}
+
 #else /*][*/
 	if (prfile == NULL) {
 		prfile = popen_no_sigint(command);
