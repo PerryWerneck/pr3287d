@@ -453,6 +453,12 @@ main(int argc, char *argv[])
 #if defined(_WIN32) /*[*/
 		} else if (!strcmp(argv[i], "-nocrlf")) {
 			crlf = 0;
+		} else if (!strcmp(argv[i], "-printer-test")) {
+			ws_start(NULL);
+			ws_putstring(build);
+			ws_putstring("\nTesting printer job\n\n");
+			ws_endjob();
+			exit(0);
 #else /*][*/
 		} else if (!strcmp(argv[i], "-crlf")) {
 			crlf = 1;

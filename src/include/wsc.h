@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007-2009, Paul Mattes.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -13,7 +13,7 @@
  *     * Neither the name of Paul Mattes nor his contributors may be used
  *       to endorse or promote products derived from this software without
  *       specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY PAUL MATTES "AS IS" AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -36,5 +36,6 @@ char *ws_default_printer(void);
 int ws_endjob(void);
 int ws_flush(void);
 int ws_putc(char c);
+int ws_putstring(const char *s);
 int ws_start(char *printer_name);
 int ws_write(char *s, int len);

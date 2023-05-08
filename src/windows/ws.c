@@ -204,6 +204,10 @@ ws_putc(char c)
     return 0;
 }
 
+int ws_putstring(const char *s) {
+	return ws_write(s,strlen(s));
+}
+
 /*
  * Write multiple bytes to the current print job.
  */
