@@ -33,9 +33,12 @@
  */
 
 char *ws_default_printer(void);
+
+void ws_set_output_path(const char *path);
+
 int ws_endjob(void);
 int ws_flush(void);
 int ws_putc(char c);
 int ws_putstring(const char *s);
 int ws_start(char *printer_name);
-int ws_write(char *s, int len);
+int ws_write(const char *s, int len);

@@ -459,6 +459,14 @@ main(int argc, char *argv[])
 			ws_putstring("\nTesting printer job\n\n");
 			ws_endjob();
 			exit(0);
+		} else if (!strcmp(argv[i], "-output-path")) {
+			if (argc <= i + 1 || !argv[i + 1][0]) {
+				(void) fprintf(stderr,
+				    "Missing value for -output-path\n");
+				usage();
+			}
+			ws_set_output_path(argv[i + 1]);
+			i++;
 #else /*][*/
 		} else if (!strcmp(argv[i], "-crlf")) {
 			crlf = 1;

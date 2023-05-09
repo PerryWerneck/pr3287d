@@ -20,4 +20,6 @@ Makefile
 version.c
 resources.rc
 *test.sh
+*.txt
+packages
 

@@ -34,8 +34,11 @@
 
 #include <windows.h>
 #include <winspool.h>
+#include <stdio.h>
+#include <time.h>
 #include "localdefs.h"
 #include "wsc.h"
+#include <fcntl.h>
 
 #define PRINTER_BUFSIZE	16384
 
@@ -51,8 +54,10 @@ static enum {
 } printer_mode = PRINTER_MODE_DEFAULT;
 
 static HANDLE printer_handle;
+static FILE *printer_file = NULL;
 
 static char printer_buf[PRINTER_BUFSIZE];
+static char output_path[PATH_MAX+1] = "\0";
 static int pbcnt = 0;
 
 /*
@@ -62,6 +67,11 @@ static int pbcnt = 0;
  * The functions generally return 0 for success, and -1 for failure.
  * If a failure occurs, they issue an error message via the 'errmsg' call.
  */
+
+void ws_set_output_path(const char *path) {
+	strncpy(output_path,path,PATH_MAX);
+	printer_mode = PRINTER_MODE_FILE;
+}
 
 /*
  * Start talking to the named printer.
@@ -99,6 +109,13 @@ ws_start(char *printer_name)
 		}
 		break;
 
+	case PRINTER_MODE_FILE:
+		if(printer_file) {
+			fclose(printer_file);
+			printer_file = NULL;
+		}
+		break;
+
 	}
 
     printer_state = PRINTER_OPEN;
@@ -123,12 +140,12 @@ ws_flush(void)
 
 	int rv = 0;
 
-	switch(printer_mode) {
-	case PRINTER_MODE_DEFAULT:
-		{
-			DWORD wrote;
+	if (pbcnt != 0) {
 
-			if (pbcnt != 0) {
+		switch(printer_mode) {
+		case PRINTER_MODE_DEFAULT:
+			{
+				DWORD wrote;
 
 				if (WritePrinter(printer_handle, printer_buf, pbcnt, &wrote) == 0) {
 					errmsg("ws_flush: WritePrinter failed, "
@@ -136,13 +153,16 @@ ws_flush(void)
 					rv = -1;
 				}
 
-				pbcnt = 0;
-
 			}
-		}
-		break;
-	}
+			break;
 
+		case PRINTER_MODE_FILE:
+			fwrite(printer_buf,pbcnt,1,printer_file);
+			break;
+		}
+		pbcnt = 0;
+
+	}
 
     return rv;
 }
@@ -164,7 +184,50 @@ ws_open()
 			}
 
 		}
+		break;
 
+	case PRINTER_MODE_FILE:
+		{
+			static unsigned int sequencial = 0;
+			char filename[PATH_MAX+1];
+			char timestamp[20];
+			char seq[10];
+
+			{
+				time_t t;
+				struct tm *tmp;
+
+				t = time(NULL);
+				tmp = localtime(&t);
+				if (tmp == NULL) {
+					perror("localtime");
+					exit(EXIT_FAILURE);
+				}
+
+
+				if (strftime(timestamp, sizeof(timestamp), "/%y%m%d", tmp) == 0) {
+				   fprintf(stderr, "strftime returned 0");
+				   exit(EXIT_FAILURE);
+			   }
+			}
+
+			do {
+				strncpy(filename,output_path,sizeof(filename)-1);
+				strncat(filename,timestamp,sizeof(filename)-1);
+
+				snprintf(seq,sizeof(seq),"%08d",(++sequencial));
+				strncat(filename,seq,sizeof(filename)-1);
+
+				strncat(filename,".txt",sizeof(filename)-1);
+			} while(access(filename,F_OK) == 0);
+
+			printer_file = fopen(filename,"w");
+
+#ifdef DEBUG
+			printf("Writing to %s\n",filename);
+#endif // DEBUG
+
+		}
 	}
 
 	return 0;
@@ -212,7 +275,7 @@ int ws_putstring(const char *s) {
  * Write multiple bytes to the current print job.
  */
 int
-ws_write(char *s, int len)
+ws_write(const char *s, int len)
 {
     while (len--) {
 	if (ws_putc(*s++) < 0)
@@ -256,6 +319,14 @@ ws_endjob(void)
 			rv = -1;
 			}
 		}
+		break;
+
+	case PRINTER_MODE_FILE:
+		if(printer_file) {
+			fclose(printer_file);
+			printer_file = NULL;
+		}
+		break;
 
 	}
 

@@ -1,0 +1,82 @@
+!include "MUI2.nsh"
+!include "x64.nsh"
+!include LogicLib.nsh
+
+!define /date BUILDTIME "%Y%m%d"
+
+outfile "${PKGDIR}/pr3287d-2.1-${BUILDTIME}-x86_64.exe"
+
+RequestExecutionLevel admin
+
+installDir "$PROGRAMFILES64\pr3287d"
+
+Section
+
+	SetAutoClose true
+
+	${DisableX64FSRedirection}
+
+	setOutPath $INSTDIR
+	
+	# 
+	# Instala binários
+	#
+	file bin\*
+
+	#
+	# Versão do aplicativo
+	#
+	SetRegView 64
+
+	WriteRegStr HKLM "SOFTWARE\pr3287d\versions" \
+		"build" "${BUILDTIME}"
+				
+	#
+	# Registra instalação
+	#
+	SetRegView 64
+
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d" \
+		"DisplayName" "Impressora remota PR3287"
+	
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d" \
+		"DisplayVersion" "4.0"
+
+	#WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d" \
+	#	"UninstallString" "$INSTDIR\uninstall.exe"
+	
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d" \
+		"InstallLocation" "$INSTDIR"
+	
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d" \
+		"NoModify" "1"
+
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d" \
+		"NoRepair" "1"
+	
+	#	
+	# Cria desinstalador
+	#
+	writeUninstaller $INSTDIR\uninstall.exe
+
+SectionEnd
+
+Section "Uninstall"
+
+	# Delete uninstaller
+	delete $INSTDIR\uninstaller.exe
+
+	# Cleanup register
+	SetRegView 64
+	DeleteRegKey HKLM "SOFTWARE\pr3287d"
+
+	SetRegView 64
+	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d"
+	
+	# now delete installed files
+
+	RMDir /r "$INSTDIR"
+
+SectionEnd
+
+
