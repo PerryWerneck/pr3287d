@@ -39,6 +39,7 @@
 #include "localdefs.h"
 #include "wsc.h"
 #include <fcntl.h>
+#include "trace_dsc.h"
 
 #define PRINTER_BUFSIZE	16384
 
@@ -81,6 +82,8 @@ void ws_set_output_path(const char *path) {
 int
 ws_start(char *printer_name)
 {
+	trace_ds("Start talking to the printer.\n");
+
 	switch(printer_mode) {
 	case PRINTER_MODE_DEFAULT:
 		{
@@ -128,6 +131,8 @@ ws_start(char *printer_name)
 int
 ws_flush(void)
 {
+	trace_ds("Flushing printer data.\n");
+
     switch (printer_state) {
 	case PRINTER_IDLE:
 	    errmsg("ws_endjob: printer not open");
@@ -170,6 +175,8 @@ ws_flush(void)
 int
 ws_open()
 {
+	trace_ds("Opening printer.\n");
+
 	switch(printer_mode) {
 	case PRINTER_MODE_DEFAULT:
 		{
@@ -292,6 +299,8 @@ ws_write(const char *s, int len)
 int
 ws_endjob(void)
 {
+	trace_ds("Finishing print job.\n");
+
     switch (printer_state) {
 	case PRINTER_IDLE:
 	    errmsg("ws_endjob: printer not open");
@@ -306,7 +315,7 @@ ws_endjob(void)
 
     /* Flush whatever's pending. */
     if (ws_flush() < 0)
-	rv = 1;
+		rv = 1;
 
     /* Close out the job. */
 
@@ -329,7 +338,6 @@ ws_endjob(void)
 		break;
 
 	}
-
 
     /* Done. */
     printer_state = PRINTER_OPEN;
