@@ -474,7 +474,7 @@ main(int argc, char *argv[])
 		} else if (!strcmp(argv[i], "-eojtimeout")) {
 			if (argc <= i + 1 || !argv[i + 1][0]) {
 				(void) fprintf(stderr,
-				    "Missing value for -charset\n");
+				    "Missing value for -eojtimeout\n");
 				usage();
 			}
 			eoj_timeout = strtoul(argv[i + 1], NULL, 0);
