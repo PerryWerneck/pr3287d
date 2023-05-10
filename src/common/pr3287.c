@@ -214,6 +214,8 @@ usage(void)
 "                   default printer)\n"
 "  -printercp <codepage>\n"
 "                   code page for output (default is system ANSI code page)\n"
+"  -output-path <directory>\n"
+"                   Path to store the printer outputs in text file\n"
 #endif /*]*/
 "  -proxy \"<spec>\"\n"
 "                   connect to host via specified proxy\n"
