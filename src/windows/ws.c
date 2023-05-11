@@ -46,7 +46,8 @@
 static enum {
     PRINTER_IDLE,	/* not doing anything */
     PRINTER_OPEN,	/* open, but no pending print job */
-    PRINTER_JOB		/* print job pending */
+    PRINTER_JOB,	/* print job pending */
+    PRINTER_PAGE	/* printer page open */
 } printer_state = PRINTER_IDLE;
 
 static enum {
@@ -140,6 +141,7 @@ ws_flush(void)
 	case PRINTER_OPEN:
 	    return 0;
 	case PRINTER_JOB:
+	case PRINTER_PAGE:
 	    break;
     }
 
@@ -219,6 +221,9 @@ ws_open()
 			}
 
 			do {
+				#pragma GCC diagnostic push
+				#pragma GCC diagnostic ignored "-Wstringop-truncation"
+
 				strncpy(filename,output_path,sizeof(filename)-1);
 				strncat(filename,timestamp,sizeof(filename)-1);
 
@@ -226,6 +231,9 @@ ws_open()
 				strncat(filename,seq,sizeof(filename)-1);
 
 				strncat(filename,".txt",sizeof(filename)-1);
+
+				#pragma GCC diagnostic pop
+
 			} while(access(filename,F_OK) == 0);
 
 			printer_file = fopen(filename,"w");
@@ -247,8 +255,8 @@ ws_open()
 int
 ws_putc(char c)
 {
-    switch (printer_state) {
 
+    switch (printer_state) {
 	case PRINTER_IDLE:
 	    errmsg("ws_putc: printer not open");
 	    return -1;
@@ -262,7 +270,38 @@ ws_putc(char c)
 	    break;
 
 	case PRINTER_JOB:
+
+		if(printer_mode == PRINTER_MODE_DEFAULT) {
+
+			if(c == '\f') {
+				return 0;
+			}
+
+			if(StartPagePrinter(printer_handle) == 0) {
+				errmsg("%s: StartPagePrinter failed, Win32 error %d", __FUNCTION__, GetLastError());
+				return -1;
+			}
+
+			printer_state = PRINTER_PAGE;
+
+		}
 	    break;
+
+	case PRINTER_PAGE:
+		if(c == '\f' && printer_mode == PRINTER_MODE_DEFAULT) {
+
+			if((ws_flush() < 0)) {
+				return -1;
+			}
+
+			if(EndPagePrinter(printer_handle) == 0) {
+				errmsg("%s: EndPagePrinter failed, Win32 error %d", __FUNCTION__, GetLastError());
+				return -1;
+			}
+
+			printer_state = PRINTER_JOB;
+			return 0;
+		}
     }
 
     /* Flush if needed. */
@@ -300,6 +339,7 @@ int
 ws_endjob(void)
 {
 	trace_ds("Finishing print job.\n");
+	int rv = 0;
 
     switch (printer_state) {
 	case PRINTER_IDLE:
@@ -308,10 +348,9 @@ ws_endjob(void)
 	case PRINTER_OPEN:
 	    return 0;
 	case PRINTER_JOB:
+	case PRINTER_PAGE:
 	    break;
-    }
-
-    int rv = 0;
+	}
 
     /* Flush whatever's pending. */
     if (ws_flush() < 0)
@@ -322,11 +361,17 @@ ws_endjob(void)
 	switch(printer_mode) {
 	case PRINTER_MODE_DEFAULT:
 		{
-			if (EndDocPrinter(printer_handle) == 0) {
-			errmsg("ws_endjob: EndDocPrinter failed, "
-				"Win32 error %d", GetLastError());
-			rv = -1;
+
+			if(printer_state == PRINTER_PAGE && EndPagePrinter(printer_handle) == 0) {
+				errmsg("%s: EndPagePrinter failed, Win32 error %d", __FUNCTION__, GetLastError());
+				rv = 1;
 			}
+
+			if (EndDocPrinter(printer_handle) == 0) {
+				errmsg("ws_endjob: EndDocPrinter failed, Win32 error %d", GetLastError());
+				rv = -1;
+			}
+
 		}
 		break;
 

@@ -824,8 +824,7 @@ scs_formfeed(Boolean explicit)
 		}
 #if defined(DEBUG_FF) /*[*/
 		if (nls)
-			trace_ds(" [formfeed %s %d]", explicit?
-				"explicit": "implicit", nls);
+			trace_ds(" [formfeed %s %d]", explicit? "explicit": "implicit", nls);
 #endif /*]*/
 	} else {
 		line = 1;
