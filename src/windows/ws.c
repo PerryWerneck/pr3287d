@@ -32,6 +32,7 @@
  *		Interactions with the Win32 print spooler (winspool).
  */
 
+#include <config.h>
 #include <windows.h>
 #include <winspool.h>
 #include <stdio.h>
@@ -40,6 +41,10 @@
 #include "wsc.h"
 #include <fcntl.h>
 #include "trace_dsc.h"
+
+#ifdef HAVE_PDFGEN
+	#include <pdfgen.h>
+#endif // HAVE_PDFGEN
 
 #define PRINTER_BUFSIZE	16384
 
@@ -53,6 +58,9 @@ static enum {
 static enum {
 	PRINTER_MODE_DEFAULT,	/* Use default windows spool */
 	PRINTER_MODE_FILE,		/* Print to file */
+#ifdef HAVE_PDFGEN
+	PRINTER_MODE_PDF,		/* Print to pdf */
+#endif // HAVE_PDFGEN
 } printer_mode = PRINTER_MODE_DEFAULT;
 
 static HANDLE printer_handle;
@@ -62,6 +70,22 @@ static char printer_buf[PRINTER_BUFSIZE];
 static char output_path[PATH_MAX+1] = "\0";
 static int pbcnt = 0;
 
+#ifdef HAVE_PDFGEN
+struct {
+	struct pdf_doc *document;
+	struct pdf_object *page;
+	float row;
+	struct {
+		float size;
+		char * name;
+	} font;
+} pdf = {
+	.document = NULL,
+	.page = NULL,
+	.row = 0
+};
+#endif // HAVE_PDFGEN
+
 /*
  * This is not means a general-purpose interface to the Win32 Print Spooler,
  * but rather the minimum subset needed by wpr3287.
@@ -70,9 +94,20 @@ static int pbcnt = 0;
  * If a failure occurs, they issue an error message via the 'errmsg' call.
  */
 
+void ws_set_pdf_output() {
+#ifdef HAVE_PDFGEN
+	printer_mode = PRINTER_MODE_PDF;
+	if(!output_path[0]) {
+		strncpy(output_path,"./",PATH_MAX);
+	}
+#endif // HAVE_PDFGEN
+}
+
 void ws_set_output_path(const char *path) {
 	strncpy(output_path,path,PATH_MAX);
-	printer_mode = PRINTER_MODE_FILE;
+	if(printer_mode == PRINTER_MODE_DEFAULT) {
+		printer_mode = PRINTER_MODE_FILE;
+	}
 }
 
 /*
@@ -120,6 +155,13 @@ ws_start(char *printer_name)
 		}
 		break;
 
+	case PRINTER_MODE_PDF:
+		if(pdf.document) {
+			pdf_destroy(pdf.document);
+			pdf.document = NULL;
+		}
+		break;
+
 	}
 
     printer_state = PRINTER_OPEN;
@@ -155,8 +197,7 @@ ws_flush(void)
 				DWORD wrote;
 
 				if (WritePrinter(printer_handle, printer_buf, pbcnt, &wrote) == 0) {
-					errmsg("ws_flush: WritePrinter failed, "
-						"Win32 error %d", GetLastError());
+					errmsg("ws_flush: WritePrinter failed, Win32 error %d", GetLastError());
 					rv = -1;
 				}
 
@@ -166,12 +207,101 @@ ws_flush(void)
 		case PRINTER_MODE_FILE:
 			fwrite(printer_buf,pbcnt,1,printer_file);
 			break;
+
+		case PRINTER_MODE_PDF:
+			{
+				printer_buf[pbcnt] = 0;
+				char *line = printer_buf;
+				while(*line) {
+					char *ptr = strchr(line,'\n');
+					if(ptr) {
+						*(ptr++) = 0;
+					} else {
+						ptr = line+strlen(line);
+					}
+
+					// Compute font size.
+					{
+						float document_width = pdf_page_width(pdf.page);
+						float text_width = 0.0;
+
+						pdf_get_font_text_width(pdf.document, pdf.font.name, line, pdf.font.size, &text_width);
+						while(text_width > document_width) {
+
+							if(pdf.font.size < 0.1) {
+								errmsg("ws_flush: Text line too big for font size");
+								return -1;
+							}
+
+							pdf.font.size -= 0.1;
+							pdf_get_font_text_width(pdf.document, pdf.font.name, line, pdf.font.size, &text_width);
+
+						}
+					}
+
+					// Compute text heigth.
+					{
+						pdf.row += pdf.font.size + 2;
+					}
+				}
+
+				pdf_add_text(pdf.document, NULL, line, pdf.font.size, 10, pdf.row, PDF_BLACK);
+
+			}
+			break;
+
 		}
 		pbcnt = 0;
 
 	}
 
     return rv;
+}
+
+static void build_output_filename(char *filename,const char *ext) {
+	static unsigned int sequencial = 0;
+	char timestamp[20];
+	char seq[10];
+
+	{
+		time_t t;
+		struct tm *tmp;
+
+		t = time(NULL);
+		tmp = localtime(&t);
+		if (tmp == NULL) {
+			perror("localtime");
+			exit(EXIT_FAILURE);
+		}
+
+
+		if (strftime(timestamp, sizeof(timestamp), "/%y%m%d", tmp) == 0) {
+		   fprintf(stderr, "strftime returned 0");
+		   exit(EXIT_FAILURE);
+	   }
+	}
+
+	do {
+		#pragma GCC diagnostic push
+		#pragma GCC diagnostic ignored "-Wstringop-truncation"
+
+		strncpy(filename,output_path,sizeof(filename)-1);
+		strncat(filename,timestamp,sizeof(filename)-1);
+
+		snprintf(seq,sizeof(seq),"%08d",(++sequencial));
+		strncat(filename,seq,sizeof(filename)-1);
+
+		strncat(filename,".",sizeof(filename)-1);
+		strncat(filename,ext,sizeof(filename)-1);
+
+		#pragma GCC diagnostic pop
+
+	} while(access(filename,F_OK) == 0);
+
+	#ifdef DEBUG
+		printf("Writing to %s\n",filename);
+	#endif // DEBUG
+
 }
 
 int
@@ -184,7 +314,7 @@ ws_open()
 		{
 			DOC_INFO_1 doc_info;
 			/* Start a new document. */
-			doc_info.pDocName = "wpr3287 print job";
+			doc_info.pDocName = PACKAGE_NAME " print job";
 			doc_info.pOutputFile = NULL;
 			doc_info.pDatatype = "RAW";
 			if (StartDocPrinter(printer_handle, 1, (LPBYTE)&doc_info) == 0) {
@@ -197,52 +327,32 @@ ws_open()
 
 	case PRINTER_MODE_FILE:
 		{
-			static unsigned int sequencial = 0;
 			char filename[PATH_MAX+1];
-			char timestamp[20];
-			char seq[10];
-
-			{
-				time_t t;
-				struct tm *tmp;
-
-				t = time(NULL);
-				tmp = localtime(&t);
-				if (tmp == NULL) {
-					perror("localtime");
-					exit(EXIT_FAILURE);
-				}
-
-
-				if (strftime(timestamp, sizeof(timestamp), "/%y%m%d", tmp) == 0) {
-				   fprintf(stderr, "strftime returned 0");
-				   exit(EXIT_FAILURE);
-			   }
-			}
-
-			do {
-				#pragma GCC diagnostic push
-				#pragma GCC diagnostic ignored "-Wstringop-truncation"
-
-				strncpy(filename,output_path,sizeof(filename)-1);
-				strncat(filename,timestamp,sizeof(filename)-1);
-
-				snprintf(seq,sizeof(seq),"%08d",(++sequencial));
-				strncat(filename,seq,sizeof(filename)-1);
-
-				strncat(filename,".txt",sizeof(filename)-1);
-
-				#pragma GCC diagnostic pop
-
-			} while(access(filename,F_OK) == 0);
-
+			build_output_filename(filename,"txt");
 			printer_file = fopen(filename,"w");
+		}
+		break;
 
-#ifdef DEBUG
-			printf("Writing to %s\n",filename);
-#endif // DEBUG
+	case PRINTER_MODE_PDF:
+		{
+			struct pdf_info info = {
+				.creator = PACKAGE_NAME,
+				.producer = PACKAGE_NAME,
+				.title = PACKAGE_NAME " print job",
+				.author = PACKAGE_NAME,
+				.subject = PACKAGE_NAME,
+				.date = "Today"
+			};
+
+			pdf.document = pdf_create(PDF_A4_WIDTH, PDF_A4_HEIGHT, &info);
+			pdf_set_font(pdf.document, pdf.font.name);
+			pdf.page = NULL;
+			pdf.font.size = 10;
+			pdf.font.name = "Courier";
 
 		}
+		break;
+
 	}
 
 	return 0;
@@ -270,7 +380,6 @@ ws_putc(char c)
 	    break;
 
 	case PRINTER_JOB:
-
 		if(printer_mode == PRINTER_MODE_DEFAULT) {
 
 			if(c == '\f') {
@@ -284,23 +393,41 @@ ws_putc(char c)
 
 			printer_state = PRINTER_PAGE;
 
+		} else if(printer_mode == PRINTER_MODE_PDF) {
+
+			if(c == '\f') {
+				return 0;
+			}
+
+			pdf.page = pdf_append_page(pdf.document);
+			pdf.row = pdf_page_height(pdf.page);
+			printer_state = PRINTER_PAGE;
+
 		}
 	    break;
 
 	case PRINTER_PAGE:
-		if(c == '\f' && printer_mode == PRINTER_MODE_DEFAULT) {
+		if(c == '\f') {
 
 			if((ws_flush() < 0)) {
 				return -1;
 			}
 
-			if(EndPagePrinter(printer_handle) == 0) {
-				errmsg("%s: EndPagePrinter failed, Win32 error %d", __FUNCTION__, GetLastError());
-				return -1;
-			}
+			if(printer_mode == PRINTER_MODE_DEFAULT) {
 
-			printer_state = PRINTER_JOB;
-			return 0;
+				if(EndPagePrinter(printer_handle) == 0) {
+					errmsg("%s: EndPagePrinter failed, Win32 error %d", __FUNCTION__, GetLastError());
+					return -1;
+				}
+
+				printer_state = PRINTER_JOB;
+				return 0;
+
+			} else if(printer_mode == PRINTER_MODE_PDF) {
+				printer_state = PRINTER_JOB;
+				pdf.page = NULL;
+				return 0;
+			}
 		}
     }
 
@@ -310,6 +437,7 @@ ws_putc(char c)
 
     /* Buffer this character. */
     printer_buf[pbcnt++] = c;
+
     return 0;
 }
 
@@ -382,7 +510,20 @@ ws_endjob(void)
 		}
 		break;
 
+	case PRINTER_MODE_PDF:
+		{
+			char filename[PATH_MAX+1];
+			build_output_filename(filename,"pdf");
+
+			pdf_save(pdf.document, filename);
+			pdf_destroy(pdf.document);
+			pdf.document = NULL;
+			pdf.page = NULL;
+
+		}
+		break;
 	}
+
 
     /* Done. */
     printer_state = PRINTER_OPEN;

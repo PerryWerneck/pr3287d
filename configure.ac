@@ -169,6 +169,11 @@ if test $app_cv_fvisibility_ok = yes; then
 fi
 
 dnl ---------------------------------------------------------------------------
+dnl Libraries
+dnl ---------------------------------------------------------------------------
+PKG_CHECK_EXISTS
+
+dnl ---------------------------------------------------------------------------
 dnl Check for SSL
 dnl ---------------------------------------------------------------------------
 
@@ -179,9 +184,13 @@ AC_SUBST(LIBSSL_LIBS)
 AC_SUBST(LIBSSL_CFLAGS)
 
 dnl ---------------------------------------------------------------------------
-dnl Libraries
+dnl Check for PDFGEN
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_EXISTS
+
+PKG_CHECK_MODULES( [PDFGEN], [libpdfgen], AC_DEFINE(HAVE_PDFGEN,[],[Do we have pdfgen?]), AC_MSG_NOTICE([libpdfgen not present.]) )
+
+AC_SUBST(PDFGEN_LIBS)
+AC_SUBST(PDFGEN_CFLAGS)
 
 dnl ---------------------------------------------------------------------------
 dnl Output config

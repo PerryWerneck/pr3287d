@@ -57,14 +57,14 @@ CFLAGS= \
 	-Isrc/include \
 	-I$(srcdir)/src/include \
     -DBUILD_DATE=`date +%Y%m%d` \
-	@LIBSSL_CFLAGS@
+	@LIBSSL_CFLAGS@ @PDFGEN_CFLAGS@
 
 LDFLAGS= \
 	@LDFLAGS@
 
 LIBS= \
 	@LIBS@ \
-	@LIBSSL_LIBS@ \
+	@LIBSSL_LIBS@ @PDFGEN_LIBS@ \
 	@LIBICONV@
 
 #---[ Debug Rules ]----------------------------------------------------------------------

@@ -228,6 +228,9 @@ usage(void)
 #if !defined(_WIN32) /*[*/
 "  -tracedir <dir>  directory to keep trace information in\n"
 #endif /*]*/
+#ifdef HAVE_PDFGEN
+"  -pdf             Output to PDF\n"
+#endif // HAVE_PDFGEN
 "  -trnpre <file>   file of transparent data to send before each job\n"
 "  -trnpost <file>  file of transparent data to send after each job\n"
 "  -v               display version information and exit\n"
@@ -469,6 +472,8 @@ main(int argc, char *argv[])
 			}
 			ws_set_output_path(argv[i + 1]);
 			i++;
+		} else if (!strcmp(argv[i], "-pdf")) {
+			ws_set_pdf_output();
 #else /*][*/
 		} else if (!strcmp(argv[i], "-crlf")) {
 			crlf = 1;
