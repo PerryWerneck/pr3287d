@@ -98,7 +98,7 @@ void ws_set_pdf_output() {
 #ifdef HAVE_PDFGEN
 	printer_mode = PRINTER_MODE_PDF;
 	if(!output_path[0]) {
-		strncpy(output_path,"./",PATH_MAX);
+		strncpy(output_path,".",PATH_MAX);
 	}
 #endif // HAVE_PDFGEN
 }
@@ -214,6 +214,7 @@ ws_flush(void)
 				char *line = printer_buf;
 				while(*line) {
 					char *ptr = strchr(line,'\n');
+
 					if(ptr) {
 						*(ptr++) = 0;
 					} else {
@@ -225,7 +226,10 @@ ws_flush(void)
 						float document_width = pdf_page_width(pdf.page);
 						float text_width = 0.0;
 
-						pdf_get_font_text_width(pdf.document, pdf.font.name, line, pdf.font.size, &text_width);
+						if(pdf_get_font_text_width(pdf.document, pdf.font.name, line, pdf.font.size, &text_width) < 0) {
+							errmsg("ws_flush: Cant get text width");
+							return -1;
+						}
 						while(text_width > document_width) {
 
 							if(pdf.font.size < 0.1) {
@@ -234,18 +238,24 @@ ws_flush(void)
 							}
 
 							pdf.font.size -= 0.1;
-							pdf_get_font_text_width(pdf.document, pdf.font.name, line, pdf.font.size, &text_width);
-
+							if(pdf_get_font_text_width(pdf.document, pdf.font.name, line, pdf.font.size, &text_width) < 0) {
+								errmsg("ws_flush: Cant get text width");
+								return -1;
+							}
 						}
 					}
 
 					// Compute text heigth.
 					{
-						pdf.row += pdf.font.size + 2;
+						pdf.row -= pdf.font.size + 2;
 					}
+
+					printf("%f [%s]\n",pdf.row,line);
+
+					pdf_add_text(pdf.document, NULL, line, pdf.font.size, 10, pdf.row, PDF_BLACK);
+					line = ptr;
 				}
 
-				pdf_add_text(pdf.document, NULL, line, pdf.font.size, 10, pdf.row, PDF_BLACK);
 
 			}
 			break;
@@ -345,10 +355,13 @@ ws_open()
 			};
 
 			pdf.document = pdf_create(PDF_A4_WIDTH, PDF_A4_HEIGHT, &info);
-			pdf_set_font(pdf.document, pdf.font.name);
 			pdf.page = NULL;
 			pdf.font.size = 10;
-			pdf.font.name = "Courier";
+
+			if(!pdf.font.name)
+				pdf.font.name = "Courier";
+
+			pdf_set_font(pdf.document, pdf.font.name);
 
 		}
 		break;
