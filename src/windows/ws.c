@@ -221,25 +221,32 @@ ws_flush(void)
 						ptr = line+strlen(line);
 					}
 
+					// Remove control chars
+					while(*line && *line < ' ') {
+						line++;
+					}
+
 					// Compute font size.
-					{
+					if(*line) {
+						int rc;
+						
 						float document_width = pdf_page_width(pdf.page);
 						float text_width = 0.0;
 
 						if(pdf_get_font_text_width(pdf.document, pdf.font.name, line, pdf.font.size, &text_width) < 0) {
-							errmsg("ws_flush: Cant get text width");
+							errmsg("ws_flush: Cant get text width for '%s'",line);
 							return -1;
 						}
 						while(text_width > document_width) {
 
 							if(pdf.font.size < 0.1) {
-								errmsg("ws_flush: Text line too big for font size");
+								errmsg("ws_flush: Text line '%s' too big for font size",line);
 								return -1;
 							}
 
 							pdf.font.size -= 0.1;
 							if(pdf_get_font_text_width(pdf.document, pdf.font.name, line, pdf.font.size, &text_width) < 0) {
-								errmsg("ws_flush: Cant get text width");
+							errmsg("ws_flush: Cant get text width for '%s'",line);
 								return -1;
 							}
 						}

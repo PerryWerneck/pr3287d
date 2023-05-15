@@ -461,7 +461,7 @@ main(int argc, char *argv[])
 		} else if (!strcmp(argv[i], "-printer-test")) {
 			ws_start(NULL);
 			ws_putstring(build);
-			ws_putstring("\nTesting printer job\n");
+			ws_putstring("\nTesting printer job\r\n\r\náéíóú\n");
 			ws_putstring(".........x.........x.........x.........x.........x.........x.........x.........x\n\n");
 			ws_endjob();
 			exit(0);
