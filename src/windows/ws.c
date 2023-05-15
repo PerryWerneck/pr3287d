@@ -250,8 +250,6 @@ ws_flush(void)
 						pdf.row -= pdf.font.size + 2;
 					}
 
-					printf("%f [%s]\n",pdf.row,line);
-
 					pdf_add_text(pdf.document, NULL, line, pdf.font.size, 10, pdf.row, PDF_BLACK);
 					line = ptr;
 				}
