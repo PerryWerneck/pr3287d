@@ -475,6 +475,9 @@ main(int argc, char *argv[])
 			i++;
 		} else if (!strcmp(argv[i], "-pdf")) {
 			ws_set_pdf_output();
+			if(!printercp) {
+				printercp = 65001;
+			}
 #else /*][*/
 		} else if (!strcmp(argv[i], "-crlf")) {
 			crlf = 1;

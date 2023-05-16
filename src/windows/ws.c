@@ -228,8 +228,7 @@ ws_flush(void)
 
 					// Compute font size.
 					if(*line) {
-						int rc;
-						
+
 						float document_width = pdf_page_width(pdf.page);
 						float text_width = 0.0;
 
@@ -277,6 +276,7 @@ static void build_output_filename(char *filename,const char *ext) {
 	static unsigned int sequencial = 0;
 	char timestamp[20];
 	char seq[10];
+	char *ptr;
 
 	{
 		time_t t;
@@ -290,7 +290,7 @@ static void build_output_filename(char *filename,const char *ext) {
 		}
 
 
-		if (strftime(timestamp, sizeof(timestamp), "/%y%m%d", tmp) == 0) {
+		if (strftime(timestamp, sizeof(timestamp), "%y%m%d", tmp) == 0) {
 		   fprintf(stderr, "strftime returned 0");
 		   exit(EXIT_FAILURE);
 	   }
@@ -301,6 +301,10 @@ static void build_output_filename(char *filename,const char *ext) {
 		#pragma GCC diagnostic ignored "-Wstringop-truncation"
 
 		strncpy(filename,output_path,sizeof(filename)-1);
+
+		if(filename[strlen(filename)-1] != '/') {
+			strncat(filename,"/",sizeof(filename)-1);
+		}
 		strncat(filename,timestamp,sizeof(filename)-1);
 
 		snprintf(seq,sizeof(seq),"%08d",(++sequencial));
@@ -310,6 +314,12 @@ static void build_output_filename(char *filename,const char *ext) {
 		strncat(filename,ext,sizeof(filename)-1);
 
 		#pragma GCC diagnostic pop
+
+		for(ptr = filename;*ptr;ptr++) {
+			if(*ptr == '\\') {
+				*ptr = '/';
+			}
+		}
 
 	} while(access(filename,F_OK) == 0);
 
@@ -384,20 +394,21 @@ int
 ws_putc(char c)
 {
 
-    switch (printer_state) {
-	case PRINTER_IDLE:
+	if(printer_state == PRINTER_IDLE) {
 	    errmsg("ws_putc: printer not open");
 	    return -1;
+	}
 
-	case PRINTER_OPEN:
+	if(printer_state == PRINTER_OPEN) {
 		if(ws_open()) {
 			return -1;
 		}
 	    printer_state = PRINTER_JOB;
 	    pbcnt = 0;
-	    break;
+	}
 
-	case PRINTER_JOB:
+	if(printer_state == PRINTER_JOB) {
+
 		if(printer_mode == PRINTER_MODE_DEFAULT) {
 
 			if(c == '\f') {
@@ -409,8 +420,6 @@ ws_putc(char c)
 				return -1;
 			}
 
-			printer_state = PRINTER_PAGE;
-
 		} else if(printer_mode == PRINTER_MODE_PDF) {
 
 			if(c == '\f') {
@@ -419,35 +428,42 @@ ws_putc(char c)
 
 			pdf.page = pdf_append_page(pdf.document);
 			pdf.row = pdf_page_height(pdf.page);
-			printer_state = PRINTER_PAGE;
 
 		}
-	    break;
 
-	case PRINTER_PAGE:
-		if(c == '\f') {
+		printer_state = PRINTER_PAGE;
 
-			if((ws_flush() < 0)) {
+	}
+
+	if(printer_state != PRINTER_PAGE) {
+	    errmsg("ws_putc: Unexpected printer state");
+	    return -1;
+	}
+
+	if(c == '\f') {
+
+		if((ws_flush() < 0)) {
+			return -1;
+		}
+
+		if(printer_mode == PRINTER_MODE_DEFAULT) {
+
+			if(EndPagePrinter(printer_handle) == 0) {
+				errmsg("%s: EndPagePrinter failed, Win32 error %d", __FUNCTION__, GetLastError());
 				return -1;
 			}
 
-			if(printer_mode == PRINTER_MODE_DEFAULT) {
+			printer_state = PRINTER_JOB;
+			return 0;
 
-				if(EndPagePrinter(printer_handle) == 0) {
-					errmsg("%s: EndPagePrinter failed, Win32 error %d", __FUNCTION__, GetLastError());
-					return -1;
-				}
+		} else if(printer_mode == PRINTER_MODE_PDF) {
 
-				printer_state = PRINTER_JOB;
-				return 0;
+			printer_state = PRINTER_JOB;
+			pdf.page = NULL;
+			return 0;
 
-			} else if(printer_mode == PRINTER_MODE_PDF) {
-				printer_state = PRINTER_JOB;
-				pdf.page = NULL;
-				return 0;
-			}
 		}
-    }
+	}
 
     /* Flush if needed. */
     if ((pbcnt >= PRINTER_BUFSIZE) && (ws_flush() < 0))
@@ -487,15 +503,9 @@ ws_endjob(void)
 	trace_ds("Finishing print job.\n");
 	int rv = 0;
 
-    switch (printer_state) {
-	case PRINTER_IDLE:
+	if(printer_state == PRINTER_IDLE) {
 	    errmsg("ws_endjob: printer not open");
 	    return -1;
-	case PRINTER_OPEN:
-	    return 0;
-	case PRINTER_JOB:
-	case PRINTER_PAGE:
-	    break;
 	}
 
     /* Flush whatever's pending. */
@@ -533,6 +543,8 @@ ws_endjob(void)
 			char filename[PATH_MAX+1];
 			build_output_filename(filename,"pdf");
 
+			trace_ds("Saving %s\n",filename);
+
 			pdf_save(pdf.document, filename);
 			pdf_destroy(pdf.document);
 			pdf.document = NULL;
@@ -542,10 +554,10 @@ ws_endjob(void)
 		break;
 	}
 
-
     /* Done. */
     printer_state = PRINTER_OPEN;
     return rv;
+
 }
 
 /*
