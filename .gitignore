@@ -22,4 +22,6 @@ resources.rc
 *test.sh
 *.txt
 packages
+*.exe
+*.nsi
 
