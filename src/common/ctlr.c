@@ -1885,14 +1885,14 @@ print_eoj(void)
 			rc = -1;
 	}
 
+	trace_ds("End of print job.\n");
 
 	/* Close the stream to the print process. */
 #if defined(_WIN32) /*[*/
 	if (ws_initted) {
-		trace_ds("End of print job.\n");
 		if (trnpost != NULL && copyfile(trnpost) < 0)
-		    	rc = -1;
-	    	if (ws_endjob() < 0)
+			rc = -1;
+		if (ws_endjob() < 0)
 			rc = -1;
 		ws_needpre = 1;
 	}
@@ -1938,6 +1938,8 @@ print_unbind(void)
 	/*
 	 * Make sure that the next SCS job starts with clean conditions.
 	 */
+	trace_ds("Unbinding from printer.\n");
+
 	scs_initted = False;
 }
 

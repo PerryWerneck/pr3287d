@@ -118,8 +118,6 @@ void ws_set_output_path(const char *path) {
 int
 ws_start(char *printer_name)
 {
-	trace_ds("Start talking to the printer.\n");
-
 	switch(printer_mode) {
 	case PRINTER_MODE_DEFAULT:
 		{
