@@ -21,7 +21,6 @@
 MINGW_PREFIX="/usr/x86_64-w64-mingw32/sys-root/mingw"
 PKG_CONFIG="/usr/bin/x86_64-w64-mingw32-pkg-config"
 MINGW_PACKAGE_PREFIX="mingw64"
-REPOSITORY_NAME="pw3270"
 
 # Load bundle functions
 . "$(dirname $(readlink -f "${0}"))/bundle.common"

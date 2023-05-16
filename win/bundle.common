@@ -332,6 +332,7 @@ make_nsis() {
 		-DWITHIPC \
 		-DWITHPLUGINS \
 		-DWITHSDK \
+		-DPKGDIR=${buildroot}${MINGW_PREFIX} \
 		${buildroot}${MINGW_PREFIX}/${PACKAGE_NAME}.nsi
 		if [ "$?" != "0" ]; then
 			echo "Cant build nsis script"

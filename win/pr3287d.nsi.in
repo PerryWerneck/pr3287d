@@ -4,11 +4,11 @@
 
 !define /date BUILDTIME "%Y%m%d"
 
-outfile "${PKGDIR}/pr3287d-2.1-${BUILDTIME}-x86_64.exe"
+outfile "${PKGDIR}/@PACKAGE_NAME@-@PACKAGE_VERSION@-${BUILDTIME}-x86_64.exe"
 
 RequestExecutionLevel admin
 
-installDir "$PROGRAMFILES64\pr3287d"
+installDir "$PROGRAMFILES64\@PACKAGE_NAME@"
 
 Section
 
@@ -21,14 +21,14 @@ Section
 	# 
 	# Instala binários
 	#
-	file bin\*
+	file sbin\*
 
 	#
 	# Versão do aplicativo
 	#
 	SetRegView 64
 
-	WriteRegStr HKLM "SOFTWARE\pr3287d\versions" \
+	WriteRegStr HKLM "SOFTWARE\@PACKAGE_NAME@\versions" \
 		"build" "${BUILDTIME}"
 				
 	#
@@ -36,22 +36,22 @@ Section
 	#
 	SetRegView 64
 
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d" \
-		"DisplayName" "Impressora remota PR3287"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\@PACKAGE_NAME@" \
+		"DisplayName" "Remote PR3287 printer"
 	
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d" \
-		"DisplayVersion" "4.0"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\@PACKAGE_NAME@" \
+		"DisplayVersion" "@PACKAGE_VERSION@"
 
-	#WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d" \
-	#	"UninstallString" "$INSTDIR\uninstall.exe"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\@PACKAGE_NAME@" \
+		"UninstallString" "$INSTDIR\uninstall.exe"
 	
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d" \
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\@PACKAGE_NAME@" \
 		"InstallLocation" "$INSTDIR"
 	
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d" \
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\@PACKAGE_NAME@" \
 		"NoModify" "1"
 
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d" \
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\@PACKAGE_NAME@" \
 		"NoRepair" "1"
 	
 	#	
@@ -68,10 +68,10 @@ Section "Uninstall"
 
 	# Cleanup register
 	SetRegView 64
-	DeleteRegKey HKLM "SOFTWARE\pr3287d"
+	DeleteRegKey HKLM "SOFTWARE\@PACKAGE_NAME@"
 
 	SetRegView 64
-	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\pr3287d"
+	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\@PACKAGE_NAME@"
 	
 	# now delete installed files
 

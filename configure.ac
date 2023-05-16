@@ -105,8 +105,9 @@ case "$host" in
 		LIBS="$LIBS -lws2_32 -lwtsapi32 -lcomdlg32 -lwinhttp -lwinspool"
 		LDFLAGS="$LDFLAGS -pthread"
 		AC_SUBST(EXEEXT,.exe)
-		AC_CONFIG_FILES(src/windows/resources.rc)
 		AC_SUBST(OSNAME,windows)
+		AC_CONFIG_FILES(src/windows/resources.rc)
+		AC_CONFIG_FILES(win/pr3287d.nsi)
 		;;
 
  	*)
