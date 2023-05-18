@@ -27,8 +27,6 @@ sed -i -e "s@-ftest-coverage@@g" ./pdfgen/Makefile || die "PDFGEN patch failure"
 
 make -C pdfgen || die "Make failure"
 
-install --mode=644
-
 ar rcs ${MINGW_PREFIX}/lib/libpdfgen.a pdfgen/*.o
 if [ "$?" != "0" ]; then
 	exit -1
