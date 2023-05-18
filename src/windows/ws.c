@@ -398,6 +398,7 @@ ws_putc(char c)
 	}
 
 	if(printer_state == PRINTER_OPEN) {
+		trace_ds("Starting new print job.\n");
 		if(ws_open()) {
 			return -1;
 		}
@@ -407,6 +408,7 @@ ws_putc(char c)
 
 	if(printer_state == PRINTER_JOB) {
 
+		trace_ds("Opening new page.\n");
 		if(printer_mode == PRINTER_MODE_DEFAULT) {
 
 			if(c == '\f') {
@@ -446,6 +448,7 @@ ws_putc(char c)
 
 		if(printer_mode == PRINTER_MODE_DEFAULT) {
 
+			trace_ds("Closing page.\n");
 			if(EndPagePrinter(printer_handle) == 0) {
 				errmsg("%s: EndPagePrinter failed, Win32 error %d", __FUNCTION__, GetLastError());
 				return -1;
@@ -456,6 +459,7 @@ ws_putc(char c)
 
 		} else if(printer_mode == PRINTER_MODE_PDF) {
 
+			trace_ds("Closing page.\n");
 			printer_state = PRINTER_JOB;
 			pdf.page = NULL;
 			return 0;
@@ -545,6 +549,7 @@ ws_endjob(void)
 
 			pdf_save(pdf.document, filename);
 			pdf_destroy(pdf.document);
+
 			pdf.document = NULL;
 			pdf.page = NULL;
 

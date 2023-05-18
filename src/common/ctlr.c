@@ -1895,6 +1895,8 @@ print_eoj(void)
 		if (ws_endjob() < 0)
 			rc = -1;
 		ws_needpre = 1;
+	} else {
+		trace_ds("Printer was not initialized.\n");
 	}
 #else /*]*/
 	if (prfile != NULL) {

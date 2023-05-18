@@ -464,6 +464,10 @@ main(int argc, char *argv[])
 			ws_putstring("\nTesting printer job\r\n\r\náéíóú\n");
 			ws_putstring(".........x.........x.........x.........x.........x.........x.........x.........x\n\n");
 			ws_endjob();
+			ws_putstring(".........x.........x.........x.........x.........x.........x.........x.........x\n\n");
+			ws_putstring(".........x.........x.........x.........x.........x.........x.........x.........x\n\n");
+			ws_putstring(".........x.........x.........x.........x.........x.........x.........x.........x\n\n");
+			ws_endjob();
 			exit(0);
 		} else if (!strcmp(argv[i], "-output-path")) {
 			if (argc <= i + 1 || !argv[i + 1][0]) {
