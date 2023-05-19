@@ -32,7 +32,7 @@ if [ "$?" != "0" ]; then
 	exit -1
 fi
 
-install --mode=644 *.h ${MINGW_PREFIX}/include
+install --mode=644 pdfgen/*.h ${MINGW_PREFIX}/include
 if [ "$?" != "0" ]; then
 	exit -1
 fi
