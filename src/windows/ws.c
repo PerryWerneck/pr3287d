@@ -341,7 +341,7 @@ ws_open()
 			doc_info.pOutputFile = NULL;
 			doc_info.pDatatype = "RAW";
 			if (StartDocPrinter(printer_handle, 1, (LPBYTE)&doc_info) == 0) {
-				errmsg("ws_putc: StartDocPrinter failed, Win32 error %d", GetLastError());
+				errmsg("ws_open: StartDocPrinter failed, Win32 error %d", GetLastError());
 				return -1;
 			}
 
@@ -368,6 +368,12 @@ ws_open()
 			};
 
 			pdf.document = pdf_create(PDF_A4_WIDTH, PDF_A4_HEIGHT, &info);
+
+			if(!pdf.document) {
+				errmsg("ws_open: pdf_create has failed");
+				return -1;
+			}
+
 			pdf.page = NULL;
 			pdf.font.size = 10;
 
@@ -426,6 +432,10 @@ ws_putc(char c)
 				return 0;
 			}
 
+			if(!pdf.document) {
+				trace_ds("PDF document was closed, opening it.\n");
+				ws_open();
+			}
 			pdf.page = pdf_append_page(pdf.document);
 			pdf.row = pdf_page_height(pdf.page);
 
@@ -510,6 +520,11 @@ ws_endjob(void)
 	    return -1;
 	}
 
+	if(printer_state == PRINTER_OPEN) {
+		trace_ds("ws_endjob: Empty job, ignoring.\n");
+		return 0;
+	}
+
     /* Flush whatever's pending. */
     if (ws_flush() < 0)
 		rv = 1;
@@ -541,7 +556,8 @@ ws_endjob(void)
 		break;
 
 	case PRINTER_MODE_PDF:
-		{
+		if(pdf.document) {
+
 			char filename[PATH_MAX+1];
 			build_output_filename(filename,"pdf");
 
@@ -553,6 +569,11 @@ ws_endjob(void)
 			pdf.document = NULL;
 			pdf.page = NULL;
 
+		} else {
+
+			errmsg("ws_endjob: PDF document was not started");
+			rv = -1;
+		
 		}
 		break;
 	}
