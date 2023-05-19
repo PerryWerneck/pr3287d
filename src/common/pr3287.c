@@ -230,6 +230,7 @@ usage(void)
 #endif /*]*/
 #ifdef HAVE_PDFGEN
 "  -pdf             Output to PDF\n"
+"  -pdf-margin      Set PDF left margin in points (default=10.0)\n"
 #endif // HAVE_PDFGEN
 "  -trnpre <file>   file of transparent data to send before each job\n"
 "  -trnpost <file>  file of transparent data to send after each job\n"
@@ -420,6 +421,7 @@ main(int argc, char *argv[])
 
 	/* Gather the options. */
 	for (i = 1; i < argc && argv[i][0] == '-'; i++) {
+
 #if !defined(_WIN32) /*[*/
 		if (!strcmp(argv[i], "-daemon"))
 			bdaemon = WILL_DAEMON;
@@ -478,10 +480,22 @@ main(int argc, char *argv[])
 			ws_set_output_path(argv[i + 1]);
 			i++;
 		} else if (!strcmp(argv[i], "-pdf")) {
+
 			ws_set_pdf_output();
 			if(!printercp) {
 				printercp = 65001;
 			}
+
+		} else if (!strcmp(argv[i], "-pdf-margin")) {
+
+			if (argc <= i + 1 || !argv[i + 1][0]) {
+				(void) fprintf(stderr,
+				    "Missing value for -pdf-margin\n");
+				usage();
+			}
+			ws_set_pdf_left_margin(atof(argv[i + 1]));
+			i++;
+
 #else /*][*/
 		} else if (!strcmp(argv[i], "-crlf")) {
 			crlf = 1;
