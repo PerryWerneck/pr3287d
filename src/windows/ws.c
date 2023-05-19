@@ -270,7 +270,7 @@ ws_flush(void)
     return rv;
 }
 
-static void build_output_filename(char *filename,const char *ext) {
+static void build_output_filename(char filename[PATH_MAX+1],const char *ext) {
 	static unsigned int sequencial = 0;
 	char timestamp[20];
 	char seq[10];
@@ -298,18 +298,19 @@ static void build_output_filename(char *filename,const char *ext) {
 		#pragma GCC diagnostic push
 		#pragma GCC diagnostic ignored "-Wstringop-truncation"
 
-		strncpy(filename,output_path,sizeof(filename)-1);
+		memset(filename,0,PATH_MAX+1);
+		strncpy(filename,output_path,PATH_MAX);
 
 		if(filename[strlen(filename)-1] != '/') {
-			strncat(filename,"/",sizeof(filename)-1);
+			strncat(filename,"/",PATH_MAX);
 		}
-		strncat(filename,timestamp,sizeof(filename)-1);
+		strncat(filename,timestamp,PATH_MAX);
 
 		snprintf(seq,sizeof(seq),"%08d",(++sequencial));
-		strncat(filename,seq,sizeof(filename)-1);
+		strncat(filename,seq,PATH_MAX);
 
-		strncat(filename,".",sizeof(filename)-1);
-		strncat(filename,ext,sizeof(filename)-1);
+		strncat(filename,".",PATH_MAX);
+		strncat(filename,ext,PATH_MAX);
 
 		#pragma GCC diagnostic pop
 
