@@ -520,16 +520,16 @@ ws_endjob(void)
 	    return -1;
 	}
 
-	if(printer_state == PRINTER_OPEN) {
-		trace_ds("ws_endjob: Empty job, ignoring.\n");
-		return 0;
-	}
-
     /* Flush whatever's pending. */
     if (ws_flush() < 0)
 		rv = 1;
 
     /* Close out the job. */
+
+	if(printer_state == PRINTER_OPEN) {
+		trace_ds("ws_endjob: Empty job, ignoring.\n");
+		return rv;
+	}
 
 	switch(printer_mode) {
 	case PRINTER_MODE_DEFAULT:
@@ -571,9 +571,9 @@ ws_endjob(void)
 
 		} else {
 
-			errmsg("ws_endjob: PDF document was not started");
-			rv = -1;
-		
+			errmsg("ws_endjob: PDF document was not started\n");
+			rv = 1;
+
 		}
 		break;
 	}
