@@ -188,10 +188,16 @@ dnl ---------------------------------------------------------------------------
 dnl Check for PDFGEN
 dnl ---------------------------------------------------------------------------
 
-PKG_CHECK_MODULES( [PDFGEN], [libpdfgen], AC_DEFINE(HAVE_PDFGEN,[],[Do we have pdfgen?]), AC_MSG_NOTICE([libpdfgen not present.]) )
+AC_CHECK_HEADER(pdfgen.h, [app_cv_pdfgen="yes"], [AC_MSG_NOTICE([Can't find required file pdfgen.h])])
 
-AC_SUBST(PDFGEN_LIBS)
+if test $app_cv_fvisibility_ok = yes; then
+	AC_DEFINE(HAVE_PDFGEN, 1, [PDFGen is available])
+	AC_SUBST(PDFGEN_LIBS,"-lpdfgen")
+else
+	AC_SUBST(PDFGEN_LIBS,"")
+fi
 AC_SUBST(PDFGEN_CFLAGS)
+
 
 dnl ---------------------------------------------------------------------------
 dnl Output config
