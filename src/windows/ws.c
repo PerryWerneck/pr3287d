@@ -287,8 +287,7 @@ static void build_output_filename(char filename[PATH_MAX+1],const char *ext) {
 			exit(EXIT_FAILURE);
 		}
 
-
-		if (strftime(timestamp, sizeof(timestamp), "%y%m%d", tmp) == 0) {
+		if (strftime(timestamp, sizeof(timestamp), "%y%m%d%H%M%S", tmp) == 0) {
 		   fprintf(stderr, "strftime returned 0");
 		   exit(EXIT_FAILURE);
 	   }
@@ -306,7 +305,7 @@ static void build_output_filename(char filename[PATH_MAX+1],const char *ext) {
 		}
 		strncat(filename,timestamp,PATH_MAX);
 
-		snprintf(seq,sizeof(seq),"%08d",(++sequencial));
+		snprintf(seq,sizeof(seq),"%02d",(++sequencial) % 100);
 		strncat(filename,seq,PATH_MAX);
 
 		strncat(filename,".",PATH_MAX);
