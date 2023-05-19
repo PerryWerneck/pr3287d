@@ -754,18 +754,18 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n");
 		char errtxt[1024];
 
 		/* Resolve the host name. */
-	    	if (proxy_type > 0) {
+			if (proxy_type > 0) {
 		    	unsigned long lport;
-			char *ptr;
-			struct servent *sp;
+				char *ptr;
+				struct servent *sp;
 
-			if (resolve_host_and_port(proxy_host, proxy_portname,
-				    0, &proxy_port, &ha.sa, &ha_len, errtxt,
-				    sizeof(errtxt), NULL) < 0) {
-			    popup_an_error("%s/%s: %s", proxy_host,
-				    proxy_portname, errtxt);
-			    rc = 1;
-			    goto retry;
+				if (resolve_host_and_port(proxy_host, proxy_portname,
+						0, &proxy_port, &ha.sa, &ha_len, errtxt,
+						sizeof(errtxt), NULL) < 0) {
+					popup_an_error("%s/%s: %s", proxy_host,
+						proxy_portname, errtxt);
+					rc = 1;
+					goto retry;
 			}
 
 			lport = strtoul(port, &ptr, 0);
@@ -791,6 +791,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n");
 		}
 
 		/* Connect to the host. */
+		if (verbose)
+			(void) fprintf(stderr, "Connecting\n");
+
 		s = socket(ha.sa.sa_family, SOCK_STREAM, 0);
 		if (s < 0) {
 			popup_a_sockerr("socket");
@@ -871,6 +874,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n");
 
 		if (!reconnect)
 			break;
+
+		if (verbose)
+			(void) fprintf(stderr, "Waiting to reconnect.\n");
+
 		report_success = 1;
 
 		/* Wait a while, to reduce thrash. */
@@ -878,8 +885,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n");
 #if !defined(_WIN32) /*[*/
 			sleep(5);
 #else /*][*/
-			Sleep(5 * 1000000);
+			Sleep(5000);
 #endif /*]*/
+
+		if (verbose)
+			(void) fprintf(stderr, "Will reconnect.\n");
 
 		rc = 0;
 	}
