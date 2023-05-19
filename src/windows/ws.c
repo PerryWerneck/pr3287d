@@ -270,7 +270,7 @@ ws_flush(void)
     return rv;
 }
 
-static void build_output_filename(char *filename,const char *ext) {
+static void build_output_filename(char filename[PATH_MAX+1],const char *ext) {
 	static unsigned int sequencial = 0;
 	char timestamp[20];
 	char seq[10];
@@ -287,8 +287,7 @@ static void build_output_filename(char *filename,const char *ext) {
 			exit(EXIT_FAILURE);
 		}
 
-
-		if (strftime(timestamp, sizeof(timestamp), "%y%m%d", tmp) == 0) {
+		if (strftime(timestamp, sizeof(timestamp), "%y%m%d%H%M%S", tmp) == 0) {
 		   fprintf(stderr, "strftime returned 0");
 		   exit(EXIT_FAILURE);
 	   }
@@ -298,18 +297,19 @@ static void build_output_filename(char *filename,const char *ext) {
 		#pragma GCC diagnostic push
 		#pragma GCC diagnostic ignored "-Wstringop-truncation"
 
-		strncpy(filename,output_path,sizeof(filename)-1);
+		memset(filename,0,PATH_MAX+1);
+		strncpy(filename,output_path,PATH_MAX);
 
 		if(filename[strlen(filename)-1] != '/') {
-			strncat(filename,"/",sizeof(filename)-1);
+			strncat(filename,"/",PATH_MAX);
 		}
-		strncat(filename,timestamp,sizeof(filename)-1);
+		strncat(filename,timestamp,PATH_MAX);
 
-		snprintf(seq,sizeof(seq),"%08d",(++sequencial));
-		strncat(filename,seq,sizeof(filename)-1);
+		snprintf(seq,sizeof(seq),"%02d",(++sequencial) % 100);
+		strncat(filename,seq,PATH_MAX);
 
-		strncat(filename,".",sizeof(filename)-1);
-		strncat(filename,ext,sizeof(filename)-1);
+		strncat(filename,".",PATH_MAX);
+		strncat(filename,ext,PATH_MAX);
 
 		#pragma GCC diagnostic pop
 
@@ -341,7 +341,7 @@ ws_open()
 			doc_info.pOutputFile = NULL;
 			doc_info.pDatatype = "RAW";
 			if (StartDocPrinter(printer_handle, 1, (LPBYTE)&doc_info) == 0) {
-				errmsg("ws_putc: StartDocPrinter failed, Win32 error %d", GetLastError());
+				errmsg("ws_open: StartDocPrinter failed, Win32 error %d", GetLastError());
 				return -1;
 			}
 
@@ -368,6 +368,12 @@ ws_open()
 			};
 
 			pdf.document = pdf_create(PDF_A4_WIDTH, PDF_A4_HEIGHT, &info);
+
+			if(!pdf.document) {
+				errmsg("ws_open: pdf_create has failed");
+				return -1;
+			}
+
 			pdf.page = NULL;
 			pdf.font.size = 10;
 
@@ -426,6 +432,10 @@ ws_putc(char c)
 				return 0;
 			}
 
+			if(!pdf.document) {
+				trace_ds("PDF document was closed, opening it.\n");
+				ws_open();
+			}
 			pdf.page = pdf_append_page(pdf.document);
 			pdf.row = pdf_page_height(pdf.page);
 
@@ -516,6 +526,11 @@ ws_endjob(void)
 
     /* Close out the job. */
 
+	if(printer_state == PRINTER_OPEN) {
+		trace_ds("ws_endjob: Empty job, ignoring.\n");
+		return rv;
+	}
+
 	switch(printer_mode) {
 	case PRINTER_MODE_DEFAULT:
 		{
@@ -541,7 +556,8 @@ ws_endjob(void)
 		break;
 
 	case PRINTER_MODE_PDF:
-		{
+		if(pdf.document) {
+
 			char filename[PATH_MAX+1];
 			build_output_filename(filename,"pdf");
 
@@ -552,6 +568,11 @@ ws_endjob(void)
 
 			pdf.document = NULL;
 			pdf.page = NULL;
+
+		} else {
+
+			errmsg("ws_endjob: PDF document was not started\n");
+			rv = 1;
 
 		}
 		break;
