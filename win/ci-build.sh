@@ -37,7 +37,7 @@ if [ "$?" != "0" ]; then
 	exit -1
 fi
 
-cat ${MINGW_PREFIX}/lib/pkgconfig/libpdfgen.pc > << EOF
+cat > ${MINGW_PREFIX}/lib/pkgconfig/libpdfgen.pc << EOF
 prefix=${MINGW_PREFIX}
 exec_prefix=${prefix}
 libdir=${MINGW_PREFIX}/lib
