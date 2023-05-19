@@ -68,7 +68,7 @@ done
 export TOPDIR=$(mktemp -d)
 export BUILD_ROOT=$(mktemp -d)
 
-git clone git@github.com:PerryWerneck/pr3287d.git ${TOPDIR}/SOURCES
+git clone --branch develop git@github.com:PerryWerneck/pr3287d.git ${TOPDIR}/SOURCES
 if [ "$?" != "0" ]; then
 	exit -1
 fi

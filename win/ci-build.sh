@@ -37,6 +37,18 @@ if [ "$?" != "0" ]; then
 	exit -1
 fi
 
+cat ${MINGW_PREFIX}/lib/pkgconfig/libpdfgen.pc > << EOF
+prefix=${MINGW_PREFIX}
+exec_prefix=${prefix}
+libdir=${MINGW_PREFIX}/lib
+includedir=${prefix}/include
+
+Name: libpdfgen
+Description: Simple C PDF Creation/Generation library
+Version: 0.1
+Libs: -lpdfgen.a
+EOF
+
 #
 # Build PR3287
 #
