@@ -65,7 +65,7 @@
 #endif /*]*/
 #include <stdlib.h>
 #include <time.h>
-#if defined(HAVE_LIBSSL) /*[*/ 
+#if defined(HAVE_LIBSSL) /*[*/
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #endif /*]*/
@@ -199,13 +199,13 @@ static const char *nnn(int c);
 #define TNS_SB_IAC	7	/* got an IAC after an IAC SB */
 
 /* telnet predefined messages */
-static unsigned char	do_opt[]	= { 
+static unsigned char	do_opt[]	= {
 	IAC, DO, '_' };
-static unsigned char	dont_opt[]	= { 
+static unsigned char	dont_opt[]	= {
 	IAC, DONT, '_' };
-static unsigned char	will_opt[]	= { 
+static unsigned char	will_opt[]	= {
 	IAC, WILL, '_' };
-static unsigned char	wont_opt[]	= { 
+static unsigned char	wont_opt[]	= {
 	IAC, WONT, '_' };
 static unsigned char	functions_req[] = {
 	IAC, SB, TELOPT_TN3270E, TN3270E_OP_FUNCTIONS };
@@ -351,7 +351,7 @@ negotiate(int s, char *lu, char *assoc)
 		if (!SSL_connect(ssl_con)) {
 			popup_a_sockerr("SSL_connect failed");
 			return -1;
-		}       
+		}
 		secure_connection = True;
 		vtrace_str("TLS/DDL tunneled connection complete.  "
 			   "Connection is now secure.\n");
@@ -451,7 +451,7 @@ net_disconnect(void)
 			SSL_shutdown(ssl_con);
 			SSL_free(ssl_con);
 			ssl_con = NULL;
-		}               
+		}
 		secure_connection = False;
 #endif /*]*/
 	}
@@ -487,7 +487,7 @@ setup_lus(char *luname, const char *assoc)
 
 	/*
 	 * Count the commas in the LU name.  That plus one is the
-	 * number of LUs to try. 
+	 * number of LUs to try.
 	 */
 	lu = luname;
 	while ((comma = strchr(lu, ',')) != NULL) {
@@ -534,7 +534,7 @@ net_input(int s)
 #if defined(HAVE_LIBSSL) /*[*/
 	if (ssl_con != NULL)
 		nr = SSL_read(ssl_con, (char *) netrbuf, BUFSZ);
-	else   
+	else
 #endif /*]*/
 	nr = recv(s, (char *)netrbuf, BUFSZ, 0);
 	if (nr < 0) {
@@ -1305,10 +1305,10 @@ net_rawout(unsigned const char *buf, int len)
                 if (ssl_con != NULL)
 			nw = SSL_write(ssl_con, (const char *) buf, n2w);
 		else
-#endif /*]*/    
+#endif /*]*/
 		nw = send(sock, (const char *) buf, n2w, 0);
 		if (nw < 0) {
-#if defined(HAVE_LIBSSL) /*[*/ 
+#if defined(HAVE_LIBSSL) /*[*/
                         if (ssl_con != NULL) {
 				unsigned long e;
 				char err_buf[1024];

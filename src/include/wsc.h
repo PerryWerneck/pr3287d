@@ -36,6 +36,7 @@ char *ws_default_printer(void);
 
 void ws_set_output_path(const char *path);
 void ws_set_pdf_output();
+void ws_set_pdf_left_margin(float margin);
 
 int ws_endjob(void);
 int ws_flush(void);

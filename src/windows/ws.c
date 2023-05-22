@@ -74,7 +74,8 @@ static int pbcnt = 0;
 struct {
 	struct pdf_doc *document;
 	struct pdf_object *page;
-	float row;
+	float yoff;
+	float xoff;
 	struct {
 		float size;
 		char * name;
@@ -82,7 +83,8 @@ struct {
 } pdf = {
 	.document = NULL,
 	.page = NULL,
-	.row = 0
+	.xoff = 10.0,
+	.yoff = 0.0
 };
 #endif // HAVE_PDFGEN
 
@@ -93,6 +95,10 @@ struct {
  * The functions generally return 0 for success, and -1 for failure.
  * If a failure occurs, they issue an error message via the 'errmsg' call.
  */
+
+void ws_set_pdf_left_margin(float margin) {
+	pdf.xoff = margin;
+}
 
 void ws_set_pdf_output() {
 #ifdef HAVE_PDFGEN
@@ -251,10 +257,10 @@ ws_flush(void)
 
 					// Compute text heigth.
 					{
-						pdf.row -= pdf.font.size + 2;
+						pdf.yoff -= pdf.font.size + 2;
 					}
 
-					pdf_add_text(pdf.document, NULL, line, pdf.font.size, 10, pdf.row, PDF_BLACK);
+					pdf_add_text(pdf.document, NULL, line, pdf.font.size, pdf.xoff, pdf.yoff, PDF_BLACK);
 					line = ptr;
 				}
 
@@ -437,7 +443,7 @@ ws_putc(char c)
 				ws_open();
 			}
 			pdf.page = pdf_append_page(pdf.document);
-			pdf.row = pdf_page_height(pdf.page);
+			pdf.yoff = pdf_page_height(pdf.page);
 
 		}
 
