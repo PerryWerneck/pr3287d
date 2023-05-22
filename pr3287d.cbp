@@ -71,9 +71,6 @@
 		<Unit filename="src/common/utf8.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="src/common/version.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="src/include/3270ds.h" />
 		<Unit filename="src/include/arpa_telnet.h" />
 		<Unit filename="src/include/charsetc.h" />

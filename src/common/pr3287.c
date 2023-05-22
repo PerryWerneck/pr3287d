@@ -469,6 +469,14 @@ main(int argc, char *argv[])
 			ws_putstring(".........x.........x.........x.........x.........x.........x.........x.........x\n\n");
 			ws_putstring(".........x.........x.........x.........x.........x.........x.........x.........x\n\n");
 			ws_putstring(".........x.........x.........x.........x.........x.........x.........x.........x\n\n");
+			{
+				char buffer[100];
+				size_t line;
+				for(line = 0; line < 100; line++) {
+					snprintf(buffer,99,"%d -----\n",line);
+					ws_putstring(buffer);
+				}
+			}
 			ws_endjob();
 			exit(0);
 		} else if (!strcmp(argv[i], "-output-path")) {
@@ -496,6 +504,15 @@ main(int argc, char *argv[])
 			ws_set_pdf_left_margin(atof(argv[i + 1]));
 			i++;
 
+		} else if (!strcmp(argv[i], "-pdf-bottom")) {
+
+			if (argc <= i + 1 || !argv[i + 1][0]) {
+				(void) fprintf(stderr,
+				    "Missing value for -pdf-bottom\n");
+				usage();
+			}
+			ws_set_pdf_bottom_margin(atof(argv[i + 1]));
+			i++;
 #else /*][*/
 		} else if (!strcmp(argv[i], "-crlf")) {
 			crlf = 1;

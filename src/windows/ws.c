@@ -76,6 +76,8 @@ struct {
 	struct pdf_object *page;
 	float yoff;
 	float xoff;
+	float top;
+	float bottom;
 	struct {
 		float size;
 		char * name;
@@ -84,7 +86,9 @@ struct {
 	.document = NULL,
 	.page = NULL,
 	.xoff = 10.0,
-	.yoff = 0.0
+	.yoff = 0.0,
+	.top = 0.0,
+	.bottom = 12.0
 };
 #endif // HAVE_PDFGEN
 
@@ -98,6 +102,10 @@ struct {
 
 void ws_set_pdf_left_margin(float margin) {
 	pdf.xoff = margin;
+}
+
+void ws_set_pdf_bottom_margin(float margin) {
+	pdf.bottom = margin;
 }
 
 void ws_set_pdf_output() {
@@ -258,6 +266,11 @@ ws_flush(void)
 					// Compute text heigth.
 					{
 						pdf.yoff -= pdf.font.size + 2;
+						if(pdf.yoff < pdf.bottom && pdf.bottom > 0.1) {
+							// Manual page-break
+							pdf.page = pdf_append_page(pdf.document);
+							pdf.yoff = pdf_page_height(pdf.page) - (pdf.top + pdf.font.size + 2);
+						}
 					}
 
 					pdf_add_text(pdf.document, NULL, line, pdf.font.size, pdf.xoff, pdf.yoff, PDF_BLACK);
@@ -443,7 +456,7 @@ ws_putc(char c)
 				ws_open();
 			}
 			pdf.page = pdf_append_page(pdf.document);
-			pdf.yoff = pdf_page_height(pdf.page);
+			pdf.yoff = pdf_page_height(pdf.page) - pdf.top;
 
 		}
 
